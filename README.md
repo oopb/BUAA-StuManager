@@ -59,6 +59,8 @@ GitHub项目地址：https://github.com/oopb/BUAA-StuManager/tree/master
 - `client/templates/index.html`：应用程序的主要 HTML 文件。
 - `client/static/index_style.css`：用于应用程序样式的 CSS 文件。
 - `main.py`：运行 Flask 应用程序的主要 Python 文件。
+- `service.py`：后端 Python 文件，包含 WebService 服务。
+- `app.py`：前端 Python 文件，包含 Web 页面。
 - `users.db`：SQLite 数据库文件，存储用户信息。
 - ~~`requirements.txt`：包含项目所需 Python 包的文件。~~
 
