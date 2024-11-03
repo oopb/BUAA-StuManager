@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add User</title>
+    <link rel="stylesheet" href="/static/add_user_style.css">
+</head>
+<body>
+<h1>User Management</h1>
+<button id="open-modal-btn">Add User</button>
+
+<div id="add-user-modal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn">&times;</span>
+        <h2>Add User</h2>
+        <form id="add-user-form">
+            <label for="id">ID:</label>
+            <input type="number" id="id" name="id" required>
+            <br>
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" required>
+            <br>
+            <label for="age">Age:</label>
+            <input type="number" id="age" name="age" required>
+            <br>
+            <label for="sex">Sex:</label>
+            <input type="text" id="sex" name="sex" required>
+            <br>
+            <button type="submit">Add User</button>
+            <button type="button" onclick="window.location.href='/'">Cancel</button>
+        </form>
+        <div id="add-user-result"></div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('open-modal-btn').addEventListener('click', function () {
+        document.getElementById('add-user-modal').style.display = 'block';
+    });
+
+    document.querySelector('.close-btn').addEventListener('click', function () {
+        document.getElementById('add-user-modal').style.display = 'none';
+    });
+
+    window.addEventListener('click', function (event) {
+        if (event.target == document.getElementById('add-user-modal')) {
+            document.getElementById('add-user-modal').style.display = 'none';
+        }
+    });
+
+    document.getElementById('add-user-form').addEventListener('submit', function (event) {
+        event.preventDefault();
+        const id = document.getElementById('id').value;
+        const username = document.getElementById('username').value;
+        const age = document.getElementById('age').value;
+        const sex = document.getElementById('sex').value;
+
+        fetch('/add_user', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({id: id, user_name: username, age: age, sex: sex})
+        })
+            .then(response => response.json())
+            .then(data => {
+                const addUserResultDiv = document.getElementById('add-user-result');
+                if (data.error) {
+                    addUserResultDiv.innerHTML = `<p style="color: red;">${data.error}</p>`;
+                } else {
+                    addUserResultDiv.innerHTML = `<p style="color: green;">User added successfully!</p>`;
+                    window.location.href = '/';
+                }
+            })
+            .catch(error => {
+                console.error('Error during fetch:', error);
+            });
+    });
+</script>
+</body>
+</html>

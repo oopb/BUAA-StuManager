@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BUAA StuManager</title>
+    <link rel="stylesheet" href="/static/index_style.css">
+</head>
+<body onload="getUserList()">
+<header>
+    <h1>BUAA StuManager</h1>
+</header>
+<main>
+    <button onclick="getUserList()">Get User List</button>
+    <button onclick="window.location.href='/add_user_page'">Add User</button>
+
+    <!-- Form to query user by ID -->
+    <form id="query-user-form" onsubmit="queryUserById(event)">
+        <label for="user-id">User ID:</label>
+        <input type="number" id="user-id" name="user-id">
+        <button type="submit">Query User</button>
+    </form>
+
+    <!-- Form to edit user information -->
+    <form id="edit-user-form" onsubmit="editUser(event)" style="display:none;">
+        <h2>Edit User</h2>
+        <input type="hidden" id="edit-user-index">
+        <label for="edit-user-id">User ID:</label>
+        <input type="number" id="edit-user-id" name="edit-user-id" readonly>
+        <label for="edit-user-name">Username:</label>
+        <input type="text" id="edit-user-name" name="edit-user-name" required>
+        <label for="edit-user-age">Age:</label>
+        <input type="number" id="edit-user-age" name="edit-user-age" required>
+        <label for="edit-user-sex">Sex:</label>
+        <input type="number" id="edit-user-sex" name="edit-user-sex" required>
+        <button type="submit">Save Changes</button>
+        <button type="button" onclick="cancelEdit()">Cancel</button>
+    </form>
+
+    <table id="user-table">
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>Username</th>
+            <th>Age</th>
+            <th>Sex</th>
+            <th>Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        <!-- User data will be inserted here -->
+        </tbody>
+    </table>
+
+    <div id="pagination-controls">
+        <button id="prev-page-btn">Previous</button>
+        <span id="current-page">Page 1</span>
+        <button id="next-page-btn">Next</button>
+    </div>
+</main>
+<footer>
+    Author: 22230610 曹晨旭
+</footer>
+
+<script>
+    let currentPage = 0;
+    const pageSize = 10;
+
+    document.getElementById('prev-page-btn').addEventListener('click', function () {
+        getUserList(false, currentPage > 0 ? currentPage - 1 : 0);
+    });
+
+    document.getElementById('next-page-btn').addEventListener('click', function () {
+        getUserList(true, currentPage + 1);
+    });
+
+    function getUserList(isNextPage = false, new_page = 0) {
+        fetch(`/get_user_list?page_size=${pageSize}&current_page=${new_page}`)
+            .then(response => response.json())
+            .then(data => {
+                const userTableBody = document.getElementById('user-table').getElementsByTagName('tbody')[0];
+
+                if (data.error) {
+                    const row = userTableBody.insertRow();
+                    const cell = row.insertCell(0);
+                    cell.colSpan = 5;
+                    cell.innerHTML = `<p>${data.error}</p>`;
+                } else {
+                    const users = JSON.parse(data);
+                    if (users.length > 0) {
+                        userTableBody.innerHTML = ''; // Clear previous content
+                        users.forEach((user, index) => {
+                            const row = userTableBody.insertRow();
+                            row.insertCell(0).innerText = user.id;
+                            row.insertCell(1).innerText = user.user_name;
+                            row.insertCell(2).innerText = user.age;
+                            row.insertCell(3).innerText = user.sex;
+                            const actionsCell = row.insertCell(4);
+                            actionsCell.innerHTML = `
+                                <button onclick="deleteUser(${user.id})">Delete</button>
+                                <button onclick="showEditForm(${user.id}, '${user.user_name}', ${user.age}, ${user.sex})">Edit</button>
+                            `;
+                        });
+                        currentPage = new_page;
+                    }
+                }
+                document.getElementById('current-page').textContent = `Page ${currentPage + 1}`;
+            })
+            .catch(error => {
+                console.error('Error during fetch:', error);
+            });
+    }
+
+    function queryUserById(event) {
+        event.preventDefault();
+        const userId = document.getElementById('user-id').value;
+        fetch(`/query_user?id=${userId}`)
+            .then(response => response.json())
+            .then(data => {
+                const userTableBody = document.getElementById('user-table').getElementsByTagName('tbody')[0];
+                userTableBody.innerHTML = ''; // Clear previous content
+
+                if (data.error) {
+                    const row = userTableBody.insertRow();
+                    const cell = row.insertCell(0);
+                    cell.colSpan = 5;
+                    cell.innerHTML = `<p>${data.error}</p>`;
+                } else {
+                    const user = JSON.parse(data);
+                    const row = userTableBody.insertRow();
+                    row.insertCell(0).innerText = user.id;
+                    row.insertCell(1).innerText = user.user_name;
+                    row.insertCell(2).innerText = user.age;
+                    row.insertCell(3).innerText = user.sex;
+                    const actionsCell = row.insertCell(4);
+                    actionsCell.innerHTML = `<button onclick="deleteUser(${user.id})">Delete</button>`;
+                }
+            })
+            .catch(error => {
+                console.error('Error during fetch:', error);
+            });
+    }
+
+    function showEditForm(id, userName, age, sex) {
+        document.getElementById('edit-user-form').style.display = 'block';
+        document.getElementById('edit-user-id').value = id;
+        document.getElementById('edit-user-name').value = userName;
+        document.getElementById('edit-user-age').value = age;
+        document.getElementById('edit-user-sex').value = sex;
+    }
+
+    function editUser(event) {
+        event.preventDefault();
+        const id = document.getElementById('edit-user-id').value;
+        const userName = document.getElementById('edit-user-name').value;
+        const age = document.getElementById('edit-user-age').value;
+        const sex = document.getElementById('edit-user-sex').value;
+
+        fetch(`/edit_user?id=${id}&user_name=${userName}&age=${age}&sex=${sex}`, {method: 'PUT'})
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                } else {
+                    getUserList(); // Refresh the user list
+                    document.getElementById('edit-user-form').style.display = 'none';
+                }
+            })
+            .catch(error => {
+                console.error('Error during fetch:', error);
+            });
+    }
+
+    function cancelEdit() {
+        document.getElementById('edit-user-form').style.display = 'none';
+    }
+
+    function deleteUser(id) {
+        fetch(`/delete_user?id=${id}`, {method: 'DELETE'})
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                } else {
+                    getUserList(); // Refresh the user list
+                }
+            })
+            .catch(error => {
+                console.error('Error during fetch:', error);
+            });
+    }
+</script>
+</body>
+</html>
