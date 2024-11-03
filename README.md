@@ -7,6 +7,8 @@ BUAA-StuManager 是一个用于管理学生信息的 Web 应用程序。它允�
 
 本项目是buaa北航2学分一般专业课《互联网软件新技术（XML和Web）》（1-9周，考核方式：随堂开卷考试+8页综述论文+小程序）的课程作业，要求为使用XML+WebService技术写一个小程序。
 
+GitHub项目地址：https://github.com/oopb/BUAA-StuManager/tree/master
+
 ## 功能
 
 - 查看用户列表并分页显示
